@@ -1,0 +1,93 @@
+body {
+    margin: 0;
+    height: 100%;
+    background: linear-gradient(-45deg, #800080, #ff0000, #800080, #ff0000);
+    background-size: 400% 400%;
+    animation: gradientAnim 10s ease infinite;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding-top: 100px; /* leaves space for fixed nav */
+  }
+  
+  @keyframes gradientAnim {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .glass-nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    /* padding: 1rem 2rem; */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    color: white;
+    z-index: 10;
+    text-align: center;
+  }
+  
+  .greeting-screen{
+    padding-top: 20px;
+    font-size: 15vh;
+    font-family: "Sevillana", cursive;
+    color: white;
+  }
+  
+  form {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    color: white;
+
+  }
+  input[type="text"]{
+    background-color: grey;
+    color: white;
+    border-radius: 20px;
+    padding: 10px 15px;
+    width: 60%;
+    min-height: 40px;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bold;
+    border: none;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+  }
+  input::placeholder{
+    color: white;
+    display: flex;
+  }
+  input[type="submit"]{
+    border-radius: 35%;
+    height: 40px;
+    border: 1px solid black;
+  }
+
+  
