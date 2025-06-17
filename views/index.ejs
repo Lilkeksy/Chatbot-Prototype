@@ -12,16 +12,69 @@
 
 <body>
     <nav class="glass-nav">
-        <h1>Test 1</h1>
+        <h1>SDRC DEV FORCE</h1>
     </nav>
     <h1 class="greeting-screen">Hello There</h1>
     <main>
-        <form action="/submit" method="POST">
-            <input type="text" name="message" placeholder="Type Text here">
-            <input type="submit" value="OK">
+        <div id="chat-box" placheolder="response will be logged here"></div>
+      
+        <form id="chat-form">
+          <input type="text" id="user-input" name="message" placeholder="Type Text here" />
+          <input type="submit" value="OK" />
         </form>
-    </main>
-</body>
+      </main>
 
+
+      <script>
+        const form = document.getElementById("chat-form");
+        const input = document.getElementById("user-input");
+        const chatBox = document.getElementById("chat-box");
+        const greeting = document.querySelector(".greeting-screen");
+
+
+  // Hide greeting once chat starts
+
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const message = input.value.trim();
+          if (!message) return;
+      
+          if (greeting) greeting.style.display = "none";
+
+          // Add user message to chat box
+          const userDiv = document.createElement("div");
+          userDiv.className = "user-message";
+          userDiv.textContent = `You: ${message}`;
+          chatBox.appendChild(userDiv);
+      
+          input.value = "";
+      
+          try {
+            const res = await fetch("/submit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message })
+            });
+      
+            const data = await res.json();
+            const botDiv = document.createElement("div");
+            botDiv.className = "bot-message";
+            botDiv.textContent = `Bot: ${data.reply}`;
+            chatBox.appendChild(botDiv);
+      
+            // Scroll to bottom
+            chatBox.scrollTop = chatBox.scrollHeight;
+          } catch (err) {
+            const errDiv = document.createElement("div");
+            errDiv.className = "error-message";
+            errDiv.textContent = "⚠️ Error getting reply";
+            chatBox.appendChild(errDiv);
+            console.error(err);
+          }
+        });
+      </script>
+      
+</body>
 
 </html>
