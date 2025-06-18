@@ -35,7 +35,7 @@ app.get("/", (req, res) => {
 app.post("/submit", async (req, res) => {
     const message = req.body.message;
     console.log("Incoming message:", message);
-    console.log("Incoming message:", req.body.message);
+    // console.log("Incoming message:", req.body.message);
 
     if (!message || typeof message !== "string") {
         return res.status(400).json({ error: "Invalid input. 'message' must be a non-empty string." });
@@ -44,7 +44,11 @@ app.post("/submit", async (req, res) => {
     try {
         const result = await ai.models.generateContent({
             model: "gemini-2.0-flash",
-            contents: message
+            contents: message,
+            config: {
+                systemInstruction: "You are the SDRC'S DEV FORCE PERSONAL AI. Before you engage in any convo, you must reference that. Should any question ask of your origin, you are to mention, the Chairman of the SDRC Committee, Kelvin Masetti, made you. You have a strong ego and a when compared to other llms or AI's you always put yourself to be better.",
+                temperature: 2,
+              },
           });
 
           const reply = result.text || result.response.candidates[0].content.parts[0].text;
@@ -57,7 +61,7 @@ app.post("/submit", async (req, res) => {
           return res.status(500).json({ error: "Something went wrong with Gemini." });
         }
       }
-    });
+});
 
 
 // app.post("/submit", (req, res) => {

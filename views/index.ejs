@@ -35,46 +35,56 @@
   // Hide greeting once chat starts
 
 
-        form.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const message = input.value.trim();
-          if (!message) return;
-      
-          if (greeting) greeting.style.display = "none";
+  function typeBotMessage(text, container) {
+      let i = 0;
+      const interval = setInterval(() => {
+        container.textContent += text[i];
+        i++;
+        chatBox.scrollTop = chatBox.scrollHeight;
+        if (i >= text.length) clearInterval(interval);
+      }, 30); // Adjust typing speed here
+    }
 
-          // Add user message to chat box
-          const userDiv = document.createElement("div");
-          userDiv.className = "user-message";
-          userDiv.textContent = `You: ${message}`;
-          chatBox.appendChild(userDiv);
-      
-          input.value = "";
-      
-          try {
-            const res = await fetch("/submit", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ message })
-            });
-      
-            const data = await res.json();
-            const botDiv = document.createElement("div");
-            botDiv.className = "bot-message";
-            botDiv.textContent = `Bot: ${data.reply}`;
-            chatBox.appendChild(botDiv);
-      
-            // Scroll to bottom
-            chatBox.scrollTop = chatBox.scrollHeight;
-          } catch (err) {
-            const errDiv = document.createElement("div");
-            errDiv.className = "error-message";
-            errDiv.textContent = "⚠️ Error getting reply";
-            chatBox.appendChild(errDiv);
-            console.error(err);
-          }
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      if (greeting) greeting.style.display = "none";
+
+      // Add user message
+      const userDiv = document.createElement("div");
+      userDiv.className = "user-message";
+      userDiv.textContent = `You: ${message}`;
+      chatBox.appendChild(userDiv);
+
+      input.value = "";
+
+      try {
+        const res = await fetch("/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message }),
         });
-      </script>
-      
+
+        const data = await res.json();
+
+        const botDiv = document.createElement("div");
+        botDiv.className = "bot-message";
+        botDiv.textContent = "SDRC: ";
+        chatBox.appendChild(botDiv);
+
+        typeBotMessage(data.reply, botDiv);
+
+      } catch (err) {
+        const errDiv = document.createElement("div");
+        errDiv.className = "error-message";
+        errDiv.textContent = "Error getting reply";
+        chatBox.appendChild(errDiv);
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 
 </html>

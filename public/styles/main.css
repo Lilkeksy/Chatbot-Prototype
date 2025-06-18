@@ -11,7 +11,7 @@
 body {
     margin: 0;
     height: 100%;
-    background: linear-gradient(-45deg, #800080, #ff0000, #800080, #ff0000);
+    background: linear-gradient(-45deg, #800080, darkblue, #800080, rgb(41, 0, 41));
     background-size: 400% 400%;
     animation: gradientAnim 10s ease infinite;
     font-family: sans-serif;
@@ -63,7 +63,7 @@ body {
     left: 0;
     right: 0;
     margin: 0 auto;
-    max-width: 90%;
+    max-width: 70%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -72,7 +72,8 @@ body {
     padding: 2rem;
     border-radius: 12px;
     backdrop-filter: blur(6px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); */
+    box-shadow: 0 2px 10px rgba(225, 225, 225, 0.9);
   }
   
   input[type="text"]{
@@ -94,9 +95,15 @@ body {
     display: flex;
   }
   input[type="submit"]{
-    border-radius: 35%;
     height: 40px;
+    width: 40px;
+    border-radius: 50%;
     border: 1px solid black;
+    padding: 0;
+    text-align: center;
+  }
+  input[type="submit"]:hover{
+    background-color: lightgray;
   }
 
 
@@ -111,11 +118,13 @@ body {
     border-radius: 10px;
     color: white;
     font-family: monospace;
+    font-size: 20px;
+    box-shadow: 0 2px 10px rgba(225, 225, 225, 0.9);
   }
   
   
   .user-message, .bot-message {
-    margin: 10px 0;
+    margin: 15px 0;
   }
   
   .user-message {
