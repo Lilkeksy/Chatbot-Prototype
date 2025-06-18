@@ -19,7 +19,7 @@
         <div id="chat-box" placheolder="response will be logged here"></div>
       
         <form id="chat-form">
-          <input type="text" id="user-input" name="message" placeholder="Type Text here" />
+          <textarea id="user-input" name="message" rows="1" placeholder="Type Text here"></textarea>
           <input type="submit" value="OK" />
         </form>
       </main>
@@ -34,6 +34,10 @@
 
   // Hide greeting once chat starts
 
+  input.addEventListener("input", () => {
+  input.style.height = "auto"; // reset height
+  input.style.height = Math.min(input.scrollHeight, 150) + "px"; // grow, cap at 150px
+});
 
   function typeBotMessage(text, container) {
       let i = 0;
@@ -42,7 +46,7 @@
         i++;
         chatBox.scrollTop = chatBox.scrollHeight;
         if (i >= text.length) clearInterval(interval);
-      }, 30); // Adjust typing speed here
+      }, 15); // Adjust typing speed here
     }
 
     form.addEventListener("submit", async (e) => {
@@ -59,6 +63,7 @@
       chatBox.appendChild(userDiv);
 
       input.value = "";
+      input.style.height = "auto";
 
       try {
         const res = await fetch("/submit", {
