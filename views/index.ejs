@@ -14,7 +14,17 @@
     <nav class="glass-nav">
         <h1>SDRC DEV FORCE</h1>
     </nav>
-    <h1 class="greeting-screen">Hello There</h1>
+    <div class="greeting-screen">
+      <h1>Hello There</h1>
+      <p>Quote of the day: <br>
+        <% if (data) { %>
+          "<%= data.quote %>" — <%= data.author %>
+        <% } else { %>
+          "No quote today. Reality said no."
+        <% } %>
+      </p>
+    </div>
+    
     <main>
         <div id="chat-box" placheolder="response will be logged here"></div>
       

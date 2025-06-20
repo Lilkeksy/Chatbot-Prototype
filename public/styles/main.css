@@ -51,10 +51,23 @@ body {
   
   .greeting-screen{
     padding-top: 20px;
-    font-size: 15vh;
+    font-size: 9vh;
     font-family: "Sevillana", cursive;
     color: white;
     text-align: center;
+    /* background-color:#00ff88; */
+    width: 90%;
+    margin-bottom: 80px;
+  }
+  .greeting-screen h1{
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 120px;
+    margin-bottom: 40px;
+  }
+  .greeting-screen p{
+    font-size: 25px;
+    margin-top: 40px;
+
   }
   
   form {
@@ -77,8 +90,8 @@ body {
   }
   
   #user-input{
-    background-color: grey;
-    color: white;
+    background-color: lightblue;
+    color: black;
     border-radius: 20px;
     padding: 10px 15px;
     width: 60%;
@@ -91,10 +104,14 @@ body {
     overflow: hidden;
     line-height: 1.4;
   }
-  input::placeholder{
-    color: white;
+  #user-input::placeholder {
+    color: rgb(66, 40, 77); 
+    opacity: 1; 
     display: flex;
+    justify-content: center;
+    align-items: center;
   }
+
   input[type="submit"]{
     height: 40px;
     width: 40px;
