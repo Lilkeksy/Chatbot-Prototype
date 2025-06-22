@@ -43,6 +43,13 @@
 
 
   // Hide greeting once chat starts
+  input.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
 
   input.addEventListener("input", () => {
   input.style.height = "auto"; // reset height
