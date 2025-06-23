@@ -52,12 +52,11 @@ app.set("view engine", "ejs");
 
 // Routes
 
-
 app.get("/", async (req, res) => {
     try {
       const response = await axios.get("https://api.api-ninjas.com/v1/quotes", {
         headers: {
-          "X-Api-Key": "0/ssXA3C5tJUZxhJTYC7kQ==KOn00gnyJhf93WlX",
+          "X-Api-Key": process.env.QUOTE_API_KEY,
         },
       });
   
