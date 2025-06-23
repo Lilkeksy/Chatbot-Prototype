@@ -135,7 +135,7 @@ body {
     padding: 1rem;
     border-radius: 10px;
     color: white;
-    font-family: monospace;
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 15px;
     box-shadow: 0 2px 10px rgba(225, 225, 225, 0.9);
   }
@@ -160,4 +160,85 @@ body {
     font-style: italic;
     text-align: center;
   }
+  .bot-message strong {
+    font-weight: bold;
+  }
   
+  .bot-message em {
+    font-style: italic;
+  }
+  
+  .bot-message ul, .bot-message ol {
+    padding-left: 20px;
+    margin: 10px 0;
+  }
+  
+  .bot-message li {
+    margin-left: 20px;
+    list-style: disc;
+  }
+  
+  .bot-message pre {
+    background-color: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+  }
+  
+  .bot-message code {
+    font-family: monospace;
+    background: rgba(255,255,255,0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  #chat-box h1 {
+    font-size: 1.8rem;
+    border-bottom: 1px solid #fff4;
+    padding-bottom: 0.2em;
+  }
+  
+  #chat-box h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid #fff2;
+  }
+  
+  #chat-box h3 {
+    font-size: 1.3rem;
+  }
+  #chat-box p {
+    margin-bottom: 1.25em;
+  }
+  
+  #chat-box ul,
+  #chat-box ol {
+    padding-left: 1.5em;
+    margin-bottom: 1em;
+  }
+  
+  #chat-box li {
+    margin-bottom: 0.3em;
+  }
+  
+  #chat-box code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #ff9;
+  }
+  
+  #chat-box pre {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1em;
+    overflow-x: auto;
+    border-radius: 5px;
+    margin-bottom: 1em;
+  }
+  
+  #chat-box blockquote {
+    border-left: 3px solid #ccc;
+    padding-left: 1em;
+    color: #ddd;
+    margin: 1em 0;
+    font-style: italic;
+  }
