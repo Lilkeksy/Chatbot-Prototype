@@ -127,7 +127,7 @@ body {
 
   #chat-box {
     width: 90vw;
-    max-height: calc(100vh - 200px); /* accounts for nav + form + some margin */
+    max-height: calc(100vh - 220px); /* accounts for nav + form + some margin */
     margin: 0 auto;
     overflow-y: auto;
     background: rgba(0, 0, 0, 0.3);
@@ -138,12 +138,44 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 15px;
     box-shadow: 0 2px 10px rgba(225, 225, 225, 0.9);
+    
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  #chat-box::-webkit-scrollbar {
+    width: 8px; /* adjust for thickness */
+    margin-top: 10px;
+    margin-bottom: 10px;
   }
   
+  #chat-box::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05); 
+    border-radius: 10px;
+  }
+  
+  #chat-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.5); 
+    border-radius: 10px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+
+   
+  }
+  
+  #chat-box::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.7); 
+  }
   
   .user-message, .bot-message {
     margin: 15px 0;
   }
+
+  #chat-box,
+  .bot-message,
+  .user-message {
+    line-height: 1.6; /* Try values between 1.4 and 1.8 */
+  }
+  
   
   .user-message {
     text-align: right;
