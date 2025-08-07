@@ -1,115 +1,174 @@
 
-
+// DOM Elements
 const form = document.getElementById("chat-form");
 const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
-const greeting = document.querySelector(".greeting-screen");
+const greeting = document.getElementById("greeting-screen");
 
-input.addEventListener("keydown", function (e) {
+// Constants
+const TYPING_SPEED = 15;
+const MAX_INPUT_HEIGHT = 150;
+
+// Utility functions
+const autoResizeTextarea = () => {
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight, MAX_INPUT_HEIGHT) + "px";
+};
+
+const scrollToBottom = () => {
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
+
+const createMessageElement = (className, content) => {
+  const element = document.createElement("div");
+  element.className = className;
+  element.textContent = content;
+  return element;
+};
+
+const typeText = (text, parent, callback) => {
+  let index = 0;
+  const interval = setInterval(() => {
+    if (index >= text.length) {
+      clearInterval(interval);
+      callback();
+      return;
+    }
+    parent.appendChild(document.createTextNode(text[index++]));
+    scrollToBottom();
+  }, TYPING_SPEED);
+};
+
+const typeElement = (node, parent, callback) => {
+  if (node.nodeType === Node.TEXT_NODE) {
+    typeText(node.textContent, parent, callback);
+  } else if (node.nodeType === Node.ELEMENT_NODE) {
+    const element = document.createElement(node.tagName);
+    
+    // Copy attributes
+    Array.from(node.attributes).forEach(attr => {
+      element.setAttribute(attr.name, attr.value);
+    });
+    
+    parent.appendChild(element);
+    
+    const children = Array.from(node.childNodes);
+    let childIndex = 0;
+    
+    const processNextChild = () => {
+      if (childIndex < children.length) {
+        typeElement(children[childIndex++], element, processNextChild);
+      } else {
+        callback();
+      }
+    };
+    
+    processNextChild();
+  } else {
+    callback();
+  }
+};
+
+const typeMarkdownWithFormatting = (markdown, container) => {
+  // Sanitize and parse markdown
+  const html = DOMPurify.sanitize(marked.parse(markdown));
+  const temp = document.createElement("div");
+  temp.innerHTML = html;
+  
+  // Add prefix
+  const prefix = document.createElement("strong");
+  prefix.textContent = "➤";
+  container.appendChild(prefix);
+  container.appendChild(document.createElement("br"));
+  
+  // Type each node
+  const nodes = Array.from(temp.childNodes);
+  let nodeIndex = 0;
+  
+  const processNextNode = () => {
+    if (nodeIndex < nodes.length) {
+      typeElement(nodes[nodeIndex++], container, processNextNode);
+    }
+  };
+  
+  processNextNode();
+};
+
+const sendMessage = async (message) => {
+  try {
+    const response = await fetch("/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    return data.reply;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
+};
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  const message = input.value.trim();
+  if (!message) return;
+  
+  // Hide greeting screen
+  if (greeting) {
+    greeting.style.display = "none";
+  }
+  
+  // Add user message
+  const userMessage = createMessageElement("user-message", `You: ${message}`);
+  chatBox.appendChild(userMessage);
+  
+  // Clear input and reset height
+  input.value = "";
+  autoResizeTextarea();
+  
+  // Add bot message container
+  const botMessage = createMessageElement("bot-message", "");
+  chatBox.appendChild(botMessage);
+  
+  try {
+    const reply = await sendMessage(message);
+    typeMarkdownWithFormatting(reply, botMessage);
+  } catch (error) {
+    const errorMessage = createMessageElement("error-message", "Error getting reply");
+    chatBox.appendChild(errorMessage);
+    console.error("Chat error:", error);
+  }
+};
+
+// Event listeners
+input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
     form.requestSubmit();
   }
 });
 
-input.addEventListener("input", () => {
-  input.style.height = "auto";
-  input.style.height = Math.min(input.scrollHeight, 150) + "px";
-});
+input.addEventListener("input", autoResizeTextarea);
 
-function typeMarkdownWithFormatting(markdown, container) {
-const html = DOMPurify.sanitize(marked.parse(markdown));
-const temp = document.createElement("div");
-temp.innerHTML = html;
+form.addEventListener("submit", handleSubmit);
 
-const prefix = document.createElement("strong");
-prefix.textContent = "➤";
-container.appendChild(prefix);
-container.appendChild(document.createElement("br"));
-
-function typeNode(node, parent, cb) {
-if (node.nodeType === Node.TEXT_NODE) {
-const text = node.textContent;
-let i = 0;
-const interval = setInterval(() => {
-if (i >= text.length) {
-  clearInterval(interval);
-  cb();
-  return;
-}
-parent.appendChild(document.createTextNode(text[i++]));
-chatBox.scrollTop = chatBox.scrollHeight;
-}, 15);
-} else if (node.nodeType === Node.ELEMENT_NODE) {
-const el = document.createElement(node.tagName);
-for (const attr of node.attributes) {
-el.setAttribute(attr.name, attr.value);
-}
-parent.appendChild(el);
-
-const children = Array.from(node.childNodes);
-let idx = 0;
-
-function nextChild() {
-if (idx < children.length) {
-  typeNode(children[idx++], el, nextChild);
-} else {
-  cb();
-}
-}
-
-nextChild();
-} else {
-cb();
-}
-}
-
-const nodes = Array.from(temp.childNodes);
-let idx = 0;
-function nextBlock() {
-if (idx < nodes.length) {
-typeNode(nodes[idx++], container, nextBlock);
-}
-}
-
-nextBlock();
-}
-
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const message = input.value.trim();
-  if (!message) return;
-
-  if (greeting) greeting.style.display = "none";
-
-  const userDiv = document.createElement("div");
-  userDiv.className = "user-message";
-  userDiv.textContent = `You: ${message}`;
-  chatBox.appendChild(userDiv);
-
-  input.value = "";
-  input.style.height = "auto";
-
-  try {
-    const res = await fetch("/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
-    });
-
-    const data = await res.json();
-
-    const botDiv = document.createElement("div");
-    botDiv.className = "bot-message";
-    chatBox.appendChild(botDiv);
-
-    typeMarkdownWithFormatting(data.reply, botDiv);
-  } catch (err) {
-    const errDiv = document.createElement("div");
-    errDiv.className = "error-message";
-    errDiv.textContent = "Error getting reply";
-    chatBox.appendChild(errDiv);
-    console.error(err);
-  }
+// Initialize
+document.addEventListener("DOMContentLoaded", () => {
+  // Focus input on load
+  input.focus();
+  
+  // Ensure proper scroll behavior
+  scrollToBottom();
 });
