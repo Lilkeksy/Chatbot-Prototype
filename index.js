@@ -16,7 +16,7 @@ const model = ai.models;
 
 const Base_URL = "https://api.api-ninjas.com/v1/quotes";
 
-// Load persona prompt from file
+// Load persona prompt from file,
 const personaPrompt = fs.readFileSync(path.join("config", "sdrc-persona.txt"), "utf-8");
 
 // Middleware
@@ -66,7 +66,7 @@ app.post("/submit", async (req, res) => {
         },
       ],
       config: {
-        temperature: 0.0,
+        temperature: 0.3,
       },
     });
 

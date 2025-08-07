@@ -21,7 +21,7 @@ const temp = document.createElement("div");
 temp.innerHTML = html;
 
 const prefix = document.createElement("strong");
-prefix.textContent = "SDRC:";
+prefix.textContent = "Some bitch bot I haven't given a name to:";
 container.appendChild(prefix);
 container.appendChild(document.createElement("br"));
 
