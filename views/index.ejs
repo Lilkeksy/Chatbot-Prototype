@@ -3,6 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Required for responsive behavior -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<!-- Makes it a PWA-like fullscreen experience -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#800080"> <!-- Replace with your background color -->
+
     <title>LILKEKSY'S CHATBOT</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +21,7 @@
 <body>
   <canvas id="myCanvas"></canvas>
     <nav class="glass-nav">
-        <h1>Sharp Mouth</h1>
+        <h1>Just Be Wise</h1>
     </nav>
     <div class="greeting-screen">
       <h1>Ugh... It's you</h1>
@@ -30,11 +38,10 @@
         <div id="chat-box" placheolder="response will be logged here"></div>
       
         <form id="chat-form">
-          <div class="input-wrapper">
-            
+          <div class="input-container">
+            <textarea id="user-input" name="message" rows="1" placeholder="Type Text here"></textarea>
+            <input type="submit" value="✈️" />
           </div>
-          <textarea id="user-input" name="message" rows="1" placeholder="Type Text here"></textarea>
-          <input type="submit" value="✈️" />
         </form>
       </main>
 

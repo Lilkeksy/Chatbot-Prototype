@@ -1,3 +1,5 @@
+
+
 const form = document.getElementById("chat-form");
 const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
@@ -21,7 +23,7 @@ const temp = document.createElement("div");
 temp.innerHTML = html;
 
 const prefix = document.createElement("strong");
-prefix.textContent = "Some bitch bot I haven't given a name to:";
+prefix.textContent = "➤";
 container.appendChild(prefix);
 container.appendChild(document.createElement("br"));
 
