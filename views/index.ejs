@@ -11,8 +11,9 @@
 </head>
 
 <body>
+  <canvas id="myCanvas"></canvas>
     <nav class="glass-nav">
-        <h1>---</h1>
+        <h1>Sharp Mouth</h1>
     </nav>
     <div class="greeting-screen">
       <h1>Ugh... It's you</h1>
@@ -29,12 +30,15 @@
         <div id="chat-box" placheolder="response will be logged here"></div>
       
         <form id="chat-form">
+          <div class="input-wrapper">
+            
+          </div>
           <textarea id="user-input" name="message" rows="1" placeholder="Type Text here"></textarea>
-          <input type="submit" value="OK" />
+          <input type="submit" value="✈️" />
         </form>
       </main>
 
-      
+      <script src="/js/shader.js"></script> 
       <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js" integrity="sha512-rCQgmUulW6f6QegOvTntKKb5IAoxTpGVCdWqYjkXEpzAns6XUFs8NKVqWe+KQpctp/EoRSFSuykVputqknLYMg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
       <script src="/js/main.js"></script>
