@@ -29,16 +29,11 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: linear-gradient(-45deg, #800080, darkblue, #800080, rgb(41, 0, 41));
-  background-size: 400% 400%;
-  animation: gradientAnim 10s ease infinite;
+  background: #000000;
   z-index: -2;
 }
 
-@keyframes gradientAnim {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
+/* Gradient animation removed - no longer needed */
 
 /* ===== CANVAS BACKGROUND ===== */
 #myCanvas {

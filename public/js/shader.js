@@ -174,7 +174,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   col += at*.001+i/800.;
   col = mix(col,tint*1.25,.4);
 
-  fragColor = vec4(col*0.6, 0.3);
+  fragColor = vec4(col, 1.0);
 }
 
 // Shadertoy code ends here
@@ -276,7 +276,7 @@ canvas.addEventListener('mousemove', (event) => {
 
 function render() {
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0, 0, 0, 1);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.uniform2f(iResolutionLocation, canvas.width, canvas.height);
