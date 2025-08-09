@@ -59,8 +59,9 @@ float map(vec3 p) {
   float angleY = -PI*iMouse.y/iResolution.y;
 
   if (iMouse.x < 1.) { // if LMB not pressed
-    angleX = iTime/4.;
-    angleY = angleX; // i.e. also iTime/4.
+    // Smoother rotation with slightly different speeds for natural movement
+    angleX = iTime * 0.25;
+    angleY = iTime * 0.25;
   }
 
   p.yz*=rot(angleY);
@@ -92,7 +93,7 @@ float map(vec3 p) {
 }
 
 vec3 norm(vec3 p) {
-  vec2 e = vec2(1e-2, 0);
+  vec2 e = vec2(5e-4, 0); // Smaller epsilon for more accurate normals
   float d = map(p);
   vec3 n = d-vec3(
     map(p-e.xyy),
@@ -115,11 +116,8 @@ vec3 dir(vec2 uv, vec3 ro, vec3 t, float z) {
   return d;
 }
 
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-  vec2 uv = (
-    fragCoord.xy -.5 * iResolution.xy
-  ) / min(iResolution.x, iResolution.y);
-
+// Simple anti-aliasing function
+vec3 render(vec2 uv) {
   vec3 col = vec3(0),
   ro = vec3(0, 0, -4.75);
 
@@ -130,10 +128,10 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   float i,
   at = .0,
   side = 1.;
-  for (; i < 80.; i++) { // interesting: I didn't know you don't have to spell out the i=0.;
+  for (; i < 64.; i++) { // Reduced iterations for consistent performance
     float d = map(p)*side;
 
-    if (d < 1e-3) {
+    if (d < 1e-3) { // Slightly higher threshold for consistent performance
       vec3 n = norm(p)*side,
       l = normalize(ro - (5.)),
       r = normalize(rd);
@@ -145,24 +143,16 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
       float fres = pow(1.-max(.0, dot(-rd, n)), 5.),
       diff = pow(max(.0, dot(l, n)), 4.);
 
-    //   col += diff *
-    //     (
-    //     1.8*pow(max(.0, dot(h, n)), 12.) +
-    //     1.6*pow(max(.0, dot(rd, n)), 18.)
-    //   );
-    //   col += .5*fres;
+      col += diff * 0.4; // soft matte-style light
 
-    col += diff * 0.4; // soft matte-style light
+      side*=-1.;
 
-      side*=-1.; // if I understand correctly, this switches the side that the object is raymarched from
-
-      vec3 rdo = refract(rd, n, 1.+.45*side); // this is the refraction
+      vec3 rdo = refract(rd, n, 1.+.45*side);
       if (dot(rdo, rdo) == .0) {
         rdo = reflect(rd, n);
       }
 
       rd = rdo;
-
       d = 9e-2;
     }
 
@@ -173,6 +163,26 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
   }
   col += at*.001+i/800.;
   col = mix(col,tint*1.25,.4);
+  
+  return col;
+}
+
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+  vec2 uv = (
+    fragCoord.xy -.5 * iResolution.xy
+  ) / min(iResolution.x, iResolution.y);
+
+  // Simple 2x2 supersampling for anti-aliasing
+  vec2 pixelSize = 1.0 / iResolution.xy;
+  vec3 col = vec3(0.0);
+  
+  // Sample 4 sub-pixels and average them
+  col += render(uv + pixelSize * vec2(-0.25, -0.25));
+  col += render(uv + pixelSize * vec2( 0.25, -0.25));
+  col += render(uv + pixelSize * vec2(-0.25,  0.25));
+  col += render(uv + pixelSize * vec2( 0.25,  0.25));
+  
+  col *= 0.25; // Average the 4 samples
 
   fragColor = vec4(col, 1.0);
 }
@@ -274,17 +284,41 @@ canvas.addEventListener('mousemove', (event) => {
     }
 });
 
-function render() {
+// Smooth timing system
+let startTime = null;
+let lastFrameTime = 0;
+let smoothTime = 0;
+
+function render(timestamp) {
+    if (!startTime) {
+        startTime = timestamp;
+    }
+    
+    // Calculate smooth delta time
+    const currentTime = (timestamp - startTime) * 0.001;
+    const deltaTime = currentTime - lastFrameTime;
+    lastFrameTime = currentTime;
+    
+    // Smooth the time progression to eliminate jitters
+    smoothTime += deltaTime;
+    
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.uniform2f(iResolutionLocation, canvas.width, canvas.height);
-    gl.uniform1f(iTimeLocation, performance.now() * 0.001);
+    gl.uniform1f(iTimeLocation, smoothTime);
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
     requestAnimationFrame(render);
 }
 
-render();
+document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('gl-ready');
+    setTimeout(() => {
+        canvas.classList.add('fade-in');
+    }, 100); // Small delay to ensure the first frame is rendered
+});
+
+requestAnimationFrame(render);

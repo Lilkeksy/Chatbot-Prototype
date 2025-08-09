@@ -1,13 +1,17 @@
-
 // DOM Elements
 const form = document.getElementById("chat-form");
 const input = document.getElementById("user-input");
 const chatBox = document.getElementById("chat-box");
 const greeting = document.getElementById("greeting-screen");
+const submitButton = form.querySelector('button[type="submit"]');
 
 // Constants
 const TYPING_SPEED = 15;
 const MAX_INPUT_HEIGHT = 150;
+
+// State
+let isGenerating = false;
+let typingInterval = null;
 
 // Utility functions
 const autoResizeTextarea = () => {
@@ -19,19 +23,27 @@ const scrollToBottom = () => {
   chatBox.scrollTop = chatBox.scrollHeight;
 };
 
-const createMessageElement = (className, content) => {
-  const element = document.createElement("div");
-  element.className = className;
-  element.textContent = content;
-  return element;
+const stopGeneration = () => {
+  if (typingInterval) {
+    clearInterval(typingInterval);
+    typingInterval = null;
+  }
+  isGenerating = false;
+  submitButton.classList.remove('is-generating');
+  input.disabled = false;
+  input.focus();
 };
 
 const typeText = (text, parent, callback) => {
   let index = 0;
-  const interval = setInterval(() => {
-    if (index >= text.length) {
-      clearInterval(interval);
-      callback();
+  if (typingInterval) {
+    clearInterval(typingInterval);
+  }
+  typingInterval = setInterval(() => {
+    if (!isGenerating || index >= text.length) {
+      clearInterval(typingInterval);
+      typingInterval = null;
+      if (isGenerating) callback(); // Only call callback if not stopped
       return;
     }
     parent.appendChild(document.createTextNode(text[index++]));
@@ -40,54 +52,57 @@ const typeText = (text, parent, callback) => {
 };
 
 const typeElement = (node, parent, callback) => {
-  if (node.nodeType === Node.TEXT_NODE) {
-    typeText(node.textContent, parent, callback);
-  } else if (node.nodeType === Node.ELEMENT_NODE) {
-    const element = document.createElement(node.tagName);
-    
-    // Copy attributes
-    Array.from(node.attributes).forEach(attr => {
-      element.setAttribute(attr.name, attr.value);
-    });
-    
-    parent.appendChild(element);
-    
-    const children = Array.from(node.childNodes);
-    let childIndex = 0;
-    
-    const processNextChild = () => {
-      if (childIndex < children.length) {
-        typeElement(children[childIndex++], element, processNextChild);
-      } else {
+    if (!isGenerating) {
         callback();
-      }
-    };
-    
-    processNextChild();
-  } else {
-    callback();
-  }
+        return;
+    }
+
+    if (node.nodeType === Node.TEXT_NODE) {
+        typeText(node.textContent, parent, callback);
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = document.createElement(node.tagName);
+        
+        Array.from(node.attributes).forEach(attr => {
+            element.setAttribute(attr.name, attr.value);
+        });
+        
+        parent.appendChild(element);
+        
+        const children = Array.from(node.childNodes);
+        let childIndex = 0;
+        
+        const processNextChild = () => {
+            if (childIndex < children.length && isGenerating) {
+                typeElement(children[childIndex++], element, processNextChild);
+            } else {
+                callback();
+            }
+        };
+        
+        processNextChild();
+    } else {
+        callback();
+    }
 };
 
-const typeMarkdownWithFormatting = (markdown, container) => {
-  // Sanitize and parse markdown
+const typeMarkdownWithFormatting = (markdown, container, onComplete) => {
   const html = DOMPurify.sanitize(marked.parse(markdown));
   const temp = document.createElement("div");
   temp.innerHTML = html;
   
-  // Add prefix
   const prefix = document.createElement("strong");
   prefix.textContent = "➤";
   container.appendChild(prefix);
   container.appendChild(document.createElement("br"));
   
-  // Type each node
   const nodes = Array.from(temp.childNodes);
   let nodeIndex = 0;
   
   const processNextNode = () => {
-    if (nodeIndex < nodes.length) {
+    if (nodeIndex < nodes.length && isGenerating) {
       typeElement(nodes[nodeIndex++], container, processNextNode);
+    } else {
+      onComplete();
     }
   };
   
@@ -121,34 +136,53 @@ const sendMessage = async (message) => {
 
 const handleSubmit = async (e) => {
   e.preventDefault();
+
+  if (isGenerating) {
+    stopGeneration();
+    return;
+  }
   
   const message = input.value.trim();
   if (!message) return;
   
-  // Hide greeting screen
   if (greeting) {
     greeting.style.display = "none";
   }
   
-  // Add user message
-  const userMessage = createMessageElement("user-message", `You: ${message}`);
-  chatBox.appendChild(userMessage);
+  const userMessageDiv = document.createElement('div');
+  userMessageDiv.className = 'user-message message';
+  const userMessageContent = document.createElement('div');
+  userMessageContent.className = 'message-content';
+  userMessageContent.textContent = message;
+  userMessageDiv.appendChild(userMessageContent);
+  chatBox.appendChild(userMessageDiv);
   
-  // Clear input and reset height
   input.value = "";
   autoResizeTextarea();
   
-  // Add bot message container
-  const botMessage = createMessageElement("bot-message", "");
-  chatBox.appendChild(botMessage);
+  const botMessageDiv = document.createElement('div');
+  botMessageDiv.className = 'bot-message message';
+  const botMessageContent = document.createElement('div');
+  botMessageContent.className = 'message-content';
+  botMessageDiv.appendChild(botMessageContent);
+  chatBox.appendChild(botMessageDiv);
+
+  isGenerating = true;
+  submitButton.classList.add('is-generating');
+  input.disabled = true;
   
   try {
     const reply = await sendMessage(message);
-    typeMarkdownWithFormatting(reply, botMessage);
+    typeMarkdownWithFormatting(reply, botMessageContent, () => {
+        stopGeneration();
+    });
   } catch (error) {
-    const errorMessage = createMessageElement("error-message", "Error getting reply");
+    const errorMessage = document.createElement('div');
+    errorMessage.className = 'error-message';
+    errorMessage.textContent = 'Error getting reply';
     chatBox.appendChild(errorMessage);
     console.error("Chat error:", error);
+    stopGeneration();
   }
 };
 
@@ -156,7 +190,9 @@ const handleSubmit = async (e) => {
 input.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault();
-    form.requestSubmit();
+    if (!isGenerating) {
+        form.requestSubmit();
+    }
   }
 });
 
@@ -166,9 +202,6 @@ form.addEventListener("submit", handleSubmit);
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
-  // Focus input on load
   input.focus();
-  
-  // Ensure proper scroll behavior
   scrollToBottom();
 });
