@@ -75,7 +75,7 @@ const PERSONA_PROMPT = fs.readFileSync(
 const qaPrompt = ChatPromptTemplate.fromMessages([
   [
     "system",
-    `${PERSONA_PROMPT}\n\nContext (use if relevant):\n{context}\n\nPrevious conversation:\n{conversation_history}`,
+    `${PERSONA_PROMPT}\n\nContext (use if relevant):\n{context}\n\nPrevious conversation:\n{conversation_history}\n\nRespond naturally to the user's question. If this appears to be a new topic, treat it as a fresh question.`,
   ],
   ["user", "{question}"],
 ]);
@@ -318,10 +318,12 @@ app.post("/submit", ensureAuthenticated, async (req, res) => {
       console.error("Retrieval error:", e.message || e);
     }
 
-    // Format conversation history for the prompt
-    const formattedHistory = conversationHistory
-      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n');
+    // Format conversation history for the prompt (only if it exists)
+    const formattedHistory = conversationHistory.length > 0 
+      ? conversationHistory
+          .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+          .join('\n')
+      : '(No previous conversation)';
 
     const reply = await chain.invoke({ 
       context: contextText, 
