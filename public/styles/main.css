@@ -15,6 +15,20 @@ body:not(.auth-page) {
   padding-top: 90px;
 }
 
+/* iPhone status bar fixes */
+@supports (padding: max(0px)) {
+  body:not(.auth-page) {
+    padding-top: max(90px, env(safe-area-inset-top));
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  body:not(.auth-page) {
+    padding-top: calc(90px + env(safe-area-inset-top));
+  }
+}
+
 /* ===== BACKGROUND & ANIMATIONS ===== */
 .auth-page {
   height: 100%;
@@ -97,6 +111,19 @@ body::before {
   z-index: 1000;
   padding: 0;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* iPhone status bar area for navbar */
+@supports (padding: max(0px)) {
+  .glass-nav {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@supports (-webkit-touch-callout: none) {
+  .glass-nav {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 .glass-nav:hover {
@@ -625,6 +652,12 @@ body::before {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   color: #fff;
   border-bottom-left-radius: 5px;
+  /* Ensure proper emoji rendering on all devices */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  font-feature-settings: "liga" 1, "kern" 1;
+  -webkit-font-feature-settings: "liga" 1, "kern" 1;
+  text-rendering: optimizeLegibility;
+  -webkit-text-rendering: optimizeLegibility;
 }
 
 .error-message {
@@ -642,6 +675,33 @@ body::before {
 
 .bot-message em {
   font-style: italic;
+}
+
+/* ===== EMOJI SUPPORT ===== */
+.bot-message .message-content span[data-emoji],
+.bot-message .message-content emoji,
+.bot-message .message-content .emoji {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Android Emoji', 'EmojiSymbols', 'EmojiOne Mozilla', 'Twemoji Mozilla', 'Segoe UI Symbol', sans-serif;
+  font-size: 1.1em;
+  vertical-align: middle;
+  display: inline-block;
+  line-height: 1;
+}
+
+/* iOS Safari emoji fixes */
+@supports (-webkit-touch-callout: none) {
+  .bot-message .message-content {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  .bot-message .message-content span[data-emoji],
+  .bot-message .message-content emoji,
+  .bot-message .message-content .emoji {
+    font-family: 'Apple Color Emoji', sans-serif;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
 }
 
 .bot-message ul, .bot-message ol {
@@ -826,6 +886,21 @@ body::before {
   .logout-btn svg {
     width: 14px;
     height: 14px;
+  }
+}
+
+/* iPhone specific fixes */
+@media (max-width: 480px) and (-webkit-min-device-pixel-ratio: 2) {
+  body:not(.auth-page) {
+    padding-top: calc(90px + env(safe-area-inset-top));
+  }
+  
+  .glass-nav {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .chat-container {
+    max-height: calc(100vh - 200px - env(safe-area-inset-top));
   }
 }
 

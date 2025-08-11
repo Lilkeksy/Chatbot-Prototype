@@ -13,6 +13,8 @@ const MAX_INPUT_HEIGHT = 150;
 let isGenerating = false;
 let typingInterval = null;
 let conversationHistory = [];
+let userHasScrolled = false;
+let lastScrollTop = 0;
 
 // Utility functions
 const autoResizeTextarea = () => {
@@ -21,11 +23,13 @@ const autoResizeTextarea = () => {
 };
 
 const scrollToBottom = () => {
-  // Smooth scroll to bottom; fallback to instant if unsupported
-  try {
-    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
-  } catch {
-    chatBox.scrollTop = chatBox.scrollHeight;
+  // Only auto-scroll if user hasn't manually scrolled up
+  if (!userHasScrolled) {
+    try {
+      chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+    } catch {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
   }
 };
 
@@ -38,6 +42,8 @@ const stopGeneration = () => {
   submitButton.classList.remove('is-generating');
   input.disabled = false;
   input.focus();
+  // Reset scroll state when generation stops
+  userHasScrolled = false;
 };
 
 const typeText = (text, parent, callback) => {
@@ -262,3 +268,20 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener('resize', resizeChat);
+
+// Add scroll event listener to detect user scrolling
+chatBox.addEventListener('scroll', () => {
+  const currentScrollTop = chatBox.scrollTop;
+  const scrollHeight = chatBox.scrollHeight;
+  const clientHeight = chatBox.clientHeight;
+  
+  // Check if user scrolled up (not at bottom)
+  if (currentScrollTop + clientHeight < scrollHeight - 10) {
+    userHasScrolled = true;
+  } else {
+    // User is at bottom, allow auto-scrolling again
+    userHasScrolled = false;
+  }
+  
+  lastScrollTop = currentScrollTop;
+});
