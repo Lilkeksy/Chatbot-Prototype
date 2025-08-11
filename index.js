@@ -173,11 +173,28 @@ app.get("/logout", async (req, res) => {
 
 app.post("/login", async (req, res) => {
   try {
-    if (!authClient) return res.status(500).json({ error: "Auth not configured" });
+    if (!authClient) return res.render('login', { error: "Authentication service is currently unavailable. Please try again later." });
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: "Email and password required" });
+    if (!email || !password) return res.render('login', { error: "Please enter both email and password." });
+    
     const { data, error } = await authClient.auth.signInWithPassword({ email, password });
-    if (error) return res.status(401).json({ error: error.message });
+    if (error) {
+      // Convert Supabase error messages to user-friendly ones
+      let userFriendlyError = "Login failed. Please check your credentials and try again.";
+      
+      if (error.message.includes("Invalid login credentials")) {
+        userFriendlyError = "Incorrect email or password. Please try again.";
+      } else if (error.message.includes("Email not confirmed")) {
+        userFriendlyError = "Please check your email and confirm your account before signing in.";
+      } else if (error.message.includes("Too many requests")) {
+        userFriendlyError = "Too many login attempts. Please wait a moment before trying again.";
+      } else if (error.message.includes("User not found")) {
+        userFriendlyError = "No account found with this email address.";
+      }
+      
+      return res.render('login', { error: userFriendlyError, email: email });
+    }
+    
     const { session } = data;
     if (session) {
       res.cookie("sb_access_token", session.access_token, { httpOnly: true, sameSite: "lax", signed: true });
@@ -190,21 +207,42 @@ app.post("/login", async (req, res) => {
     }
     return res.redirect("/");
   } catch (e) {
-    return res.status(500).json({ error: String(e) });
+    return res.render('login', { error: "Something went wrong. Please try again." });
   }
 });
 
 app.post("/register", async (req, res) => {
   try {
-    if (!authClient) return res.status(500).json({ error: "Auth not configured" });
+    if (!authClient) return res.render('register', { error: "Authentication service is currently unavailable. Please try again later." });
     const { username, email, password } = req.body;
-    if (!username || !email || !password) return res.status(400).json({ error: "Username, email and password required" });
+    if (!username || !email || !password) return res.render('register', { error: "Please fill in all fields." });
+    
     const { data, error } = await authClient.auth.signUp({
       email,
       password,
       options: { data: { username } }
     });
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) {
+      // Convert Supabase error messages to user-friendly ones
+      let userFriendlyError = "Registration failed. Please try again.";
+      
+      if (error.message.includes("User already registered")) {
+        userFriendlyError = "An account with this email already exists. Please sign in instead.";
+      } else if (error.message.includes("Password should be at least")) {
+        userFriendlyError = "Password must be at least 6 characters long.";
+      } else if (error.message.includes("Invalid email")) {
+        userFriendlyError = "Please enter a valid email address.";
+      } else if (error.message.includes("Username")) {
+        userFriendlyError = "Please choose a different username.";
+      }
+      
+      return res.render('register', { 
+        error: userFriendlyError, 
+        username: username, 
+        email: email 
+      });
+    }
+    
     // Depending on email confirmation settings, there may or may not be a session
     if (data.session) {
       res.cookie("sb_access_token", data.session.access_token, { httpOnly: true, sameSite: "lax", signed: true });
@@ -216,10 +254,14 @@ app.post("/register", async (req, res) => {
       return res.redirect("/");
     } else {
       // No session (email confirmation likely required) → send to login
-      return res.redirect("/login");
+      return res.render('register', { 
+        success: "Account created successfully! Please check your email to confirm your account before signing in.",
+        username: username,
+        email: email
+      });
     }
   } catch (e) {
-    return res.status(500).json({ error: String(e) });
+    return res.render('register', { error: "Something went wrong. Please try again." });
   }
 });
 

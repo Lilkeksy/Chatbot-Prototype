@@ -3,7 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#800080">
+  <meta name="msapplication-navbutton-color" content="#800080">
   <title>Forgot Password • LILKEKSY'S CHATBOT</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,27 +19,65 @@
   <canvas id="myCanvas" aria-hidden="true"></canvas>
 
   <nav class="glass-nav" role="navigation">
-    <h1>Be Real</h1>
-    <a href="/login">Back</a>
+    <div class="nav-container">
+      <div class="nav-brand">
+        <div class="brand-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+            <path d="M19 15L19.74 17.74L22.5 18.5L19.74 19.26L19 22L18.26 19.26L15.5 18.5L18.26 17.74L19 15Z" fill="currentColor"/>
+            <path d="M5 6L5.5 7.5L7 8L5.5 8.5L5 10L4.5 8.5L3 8L4.5 7.5L5 6Z" fill="currentColor"/>
+          </svg>
+        </div>
+        <h1 class="brand-text">Be Real</h1>
+      </div>
+      
+      <div class="nav-user">
+        <a href="/login" class="back-btn" title="Back to login">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
   </nav>
 
   <main class="auth-wrapper" role="main">
-    <section class="auth-card" aria-labelledby="forgot-title">
-      <h2 id="forgot-title" class="auth-title">Reset password</h2>
-      <p class="auth-subtitle">Enter your email to receive a reset link</p>
-
-      <% if (typeof sent !== 'undefined' && sent) { %>
-        <p class="auth-meta">If an account exists for that email, a reset link has been sent.</p>
-      <% } %>
-
-      <form class="auth-form" action="/forgot" method="POST">
-        <div class="auth-input-group">
-          <label class="auth-label" for="email">Email</label>
-          <input class="auth-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+    <% if (typeof sent !== 'undefined' && sent) { %>
+      <!-- Success State -->
+      <section class="auth-card success-state" aria-labelledby="success-title">
+        <div class="success-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          </svg>
         </div>
-        <button class="auth-button" type="submit" aria-label="Send reset link">Send reset link</button>
-      </form>
-    </section>
+        <h2 id="success-title" class="auth-title">Check your email</h2>
+        <p class="auth-subtitle">We've sent a password reset link to your email address</p>
+        
+        <div class="success-details">
+          <p class="success-note">If you don't see the email, check your spam folder. The link will expire in 24 hours.</p>
+        </div>
+        
+        <div class="success-actions">
+          <a href="/login" class="auth-button secondary">Back to login</a>
+          <button class="auth-button" onclick="location.reload()">Send another link</button>
+        </div>
+      </section>
+    <% } else { %>
+      <!-- Form State -->
+      <section class="auth-card" aria-labelledby="forgot-title">
+        <h2 id="forgot-title" class="auth-title">Reset password</h2>
+        <p class="auth-subtitle">Enter your email to receive a reset link</p>
+
+        <form class="auth-form" action="/forgot" method="POST">
+          <div class="auth-input-group">
+            <label class="auth-label" for="email">Email</label>
+            <input class="auth-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+          </div>
+          <button class="auth-button" type="submit" aria-label="Send reset link">Send reset link</button>
+        </form>
+      </section>
+    <% } %>
   </main>
 
   <script src="/js/shader.js"></script>
