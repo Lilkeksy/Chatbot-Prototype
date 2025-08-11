@@ -1,5 +1,19 @@
 const canvas = document.getElementById('myCanvas');
-const gl = canvas.getContext('webgl2');
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMobile = window.innerWidth < 768;
+const DISABLED = !canvas || prefersReducedMotion;
+
+if (DISABLED) {
+  if (canvas) canvas.style.display = 'none';
+} else {
+  const gl = canvas.getContext('webgl2', {
+    antialias: false,
+    preserveDrawingBuffer: false,
+    powerPreference: 'low-power'
+  });
+  if (!gl) {
+    canvas.style.display = 'none';
+  } else {
 
 const vertexShaderSource = `#version 300 es
 
@@ -10,7 +24,10 @@ void main() {
 }
 `;
 
-const fragmentShaderSource = `#version 300 es
+    // Lower quality on mobile for performance
+    const LOW_QUALITY = isMobile;
+
+    let fragmentShaderSource = `#version 300 es
 
 precision highp float;
 
@@ -128,7 +145,7 @@ vec3 render(vec2 uv) {
   float i,
   at = .0,
   side = 1.;
-  for (; i < 64.; i++) { // Reduced iterations for consistent performance
+  for (; i < 64.; i++) { // Will be reduced on mobile
     float d = map(p)*side;
 
     if (d < 1e-3) { // Slightly higher threshold for consistent performance
@@ -172,17 +189,7 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     fragCoord.xy -.5 * iResolution.xy
   ) / min(iResolution.x, iResolution.y);
 
-  // Simple 2x2 supersampling for anti-aliasing
-  vec2 pixelSize = 1.0 / iResolution.xy;
-  vec3 col = vec3(0.0);
-  
-  // Sample 4 sub-pixels and average them
-  col += render(uv + pixelSize * vec2(-0.25, -0.25));
-  col += render(uv + pixelSize * vec2( 0.25, -0.25));
-  col += render(uv + pixelSize * vec2(-0.25,  0.25));
-  col += render(uv + pixelSize * vec2( 0.25,  0.25));
-  
-  col *= 0.25; // Average the 4 samples
+  vec3 col = render(uv);
 
   fragColor = vec4(col, 1.0);
 }
@@ -194,6 +201,11 @@ void main() {
 }
 
 `;
+
+    if (LOW_QUALITY) {
+      fragmentShaderSource = fragmentShaderSource
+        .replace('for (; i < 64.; i++)', 'for (; i < 28.; i++)');
+    }
 
 const vertexShader = gl.createShader(gl.VERTEX_SHADER);
 gl.shaderSource(vertexShader, vertexShaderSource);
@@ -234,24 +246,26 @@ const iResolutionLocation = gl.getUniformLocation(program, 'iResolution');
 const iMouseLocation = gl.getUniformLocation(program, 'iMouse');
 const iTimeLocation = gl.getUniformLocation(program, 'iTime');
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
+    function resizeCanvas() {
+      const scale = LOW_QUALITY ? 0.5 : Math.min(window.devicePixelRatio || 1, 1.25);
+      canvas.width = Math.floor(window.innerWidth * scale);
+      canvas.height = Math.floor(window.innerHeight * scale);
+      canvas.style.width = '100vw';
+      canvas.style.height = '100vh';
+    }
 
-window.addEventListener('resize', resizeCanvas);  
-
-resizeCanvas(); // Initial resize
+    window.addEventListener('resize', resizeCanvas);  
+    resizeCanvas();
 
 let isMouseDown = false;
 let mouseX = 0; // Store the last mouse X position
 let mouseY = 0; // Store the last mouse Y position
 
-canvas.addEventListener('mousedown', (event) => {
+    canvas.addEventListener('mousedown', (event) => {
     isMouseDown = true;
 });
 
-canvas.addEventListener('mouseup', (event) => {
+    canvas.addEventListener('mouseup', (event) => {
     isMouseDown = false;
     // Optional: Reset mouse position in the shader when the button is released.
     // This is important to stop any lingering movement in the shader.
@@ -261,14 +275,14 @@ canvas.addEventListener('mouseup', (event) => {
     mouseY = -1;
 });
 
-canvas.addEventListener('mouseout', (event) => {
+    canvas.addEventListener('mouseout', (event) => {
     isMouseDown = false;
     gl.uniform2f(iMouseLocation, -1, -1); // Reset in shader as well
     mouseX = -1; //reset mouse position
     mouseY = -1;
 });
 
-canvas.addEventListener('mousemove', (event) => {
+    canvas.addEventListener('mousemove', (event) => {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = canvas.height - (event.clientY - rect.top);
@@ -277,7 +291,7 @@ canvas.addEventListener('mousemove', (event) => {
     mouseY = y;
 
     if (isMouseDown) {
-        gl.uniform2f(iMouseLocation, x, y);
+    gl.uniform2f(iMouseLocation, x, y);
     } else {
         // Maintain a "resting" value in the shader, or set it to a specific value.
         gl.uniform2f(iMouseLocation, -1, -1); // Or some other "out of bounds" value.
@@ -289,7 +303,7 @@ let startTime = null;
 let lastFrameTime = 0;
 let smoothTime = 0;
 
-function render(timestamp) {
+    function render(timestamp) {
     if (!startTime) {
         startTime = timestamp;
     }
@@ -311,14 +325,21 @@ function render(timestamp) {
 
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
+      // Lower frame rate on mobile to ~30fps
+      if (LOW_QUALITY) {
+        setTimeout(() => requestAnimationFrame(render), 1000/30);
+      } else {
+        requestAnimationFrame(render);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.classList.add('gl-ready');
+      setTimeout(() => {
+          canvas.classList.add('fade-in');
+      }, 100);
+    });
+
     requestAnimationFrame(render);
+  }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.body.classList.add('gl-ready');
-    setTimeout(() => {
-        canvas.classList.add('fade-in');
-    }, 100); // Small delay to ensure the first frame is rendered
-});
-
-requestAnimationFrame(render);

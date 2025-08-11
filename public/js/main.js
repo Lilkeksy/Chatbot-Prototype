@@ -12,6 +12,7 @@ const MAX_INPUT_HEIGHT = 150;
 // State
 let isGenerating = false;
 let typingInterval = null;
+let conversationHistory = [];
 
 // Utility functions
 const autoResizeTextarea = () => {
@@ -20,7 +21,12 @@ const autoResizeTextarea = () => {
 };
 
 const scrollToBottom = () => {
-  chatBox.scrollTop = chatBox.scrollHeight;
+  // Smooth scroll to bottom; fallback to instant if unsupported
+  try {
+    chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: 'smooth' });
+  } catch {
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
 };
 
 const stopGeneration = () => {
@@ -86,6 +92,13 @@ const typeElement = (node, parent, callback) => {
 };
 
 const typeMarkdownWithFormatting = (markdown, container, onComplete) => {
+  // Fallback to plain text if libs are unavailable
+  if (typeof marked === 'undefined' || typeof DOMPurify === 'undefined') {
+    container.textContent = markdown;
+    onComplete();
+    return;
+  }
+
   const html = DOMPurify.sanitize(marked.parse(markdown));
   const temp = document.createElement("div");
   temp.innerHTML = html;
@@ -109,12 +122,28 @@ const typeMarkdownWithFormatting = (markdown, container, onComplete) => {
   processNextNode();
 };
 
+// Resize chat area to avoid clipping with the sticky form and fixed nav
+const resizeChat = () => {
+  if (!chatBox) return;
+  const nav = document.querySelector('.glass-nav');
+  const formEl = document.querySelector('.chat-form');
+  const navH = nav ? nav.offsetHeight : 0;
+  const formH = formEl ? formEl.offsetHeight : 0;
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  const margin = 24;
+  const maxH = Math.max(200, vh - navH - formH - margin);
+  chatBox.style.maxHeight = maxH + 'px';
+};
+
 const sendMessage = async (message) => {
   try {
     const response = await fetch("/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
+      body: JSON.stringify({ 
+        message,
+        conversationHistory: conversationHistory.slice(-10) // Keep last 10 messages for context
+      })
     });
     
     if (!response.ok) {
@@ -147,6 +176,7 @@ const handleSubmit = async (e) => {
   
   if (greeting) {
     greeting.style.display = "none";
+    document.body.classList.add('has-started');
   }
   
   const userMessageDiv = document.createElement('div');
@@ -157,6 +187,9 @@ const handleSubmit = async (e) => {
   userMessageDiv.appendChild(userMessageContent);
   chatBox.appendChild(userMessageDiv);
   
+  // Add user message to conversation history
+  conversationHistory.push({ role: 'user', content: message });
+  
   input.value = "";
   autoResizeTextarea();
   
@@ -166,6 +199,7 @@ const handleSubmit = async (e) => {
   botMessageContent.className = 'message-content';
   botMessageDiv.appendChild(botMessageContent);
   chatBox.appendChild(botMessageDiv);
+  scrollToBottom();
 
   isGenerating = true;
   submitButton.classList.add('is-generating');
@@ -173,8 +207,13 @@ const handleSubmit = async (e) => {
   
   try {
     const reply = await sendMessage(message);
+    
+    // Add bot reply to conversation history
+    conversationHistory.push({ role: 'assistant', content: reply });
+    
     typeMarkdownWithFormatting(reply, botMessageContent, () => {
         stopGeneration();
+        scrollToBottom();
     });
   } catch (error) {
     const errorMessage = document.createElement('div');
@@ -202,6 +241,24 @@ form.addEventListener("submit", handleSubmit);
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
-  input.focus();
-  scrollToBottom();
+  const toggleBtn = document.getElementById('toggle-bg');
+  const canvas = document.getElementById('myCanvas');
+  if (toggleBtn && canvas) {
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = canvas.style.display === 'none';
+      canvas.style.display = isHidden ? 'block' : 'none';
+      toggleBtn.textContent = `Background: ${isHidden ? 'On' : 'Off'}`;
+    });
+  }
+
+  if(input) {
+    input.focus();
+  }
+  // Trigger a layout to ensure the chat container can scroll
+  setTimeout(() => {
+    resizeChat();
+    scrollToBottom();
+  }, 0);
 });
+
+window.addEventListener('resize', resizeChat);

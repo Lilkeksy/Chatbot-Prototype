@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#800080">
+  <title>Set New Password • LILKEKSY'S CHATBOT</title>
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="auth-page">
+  <nav class="glass-nav" role="navigation">
+    <h1>Be Real</h1>
+    <a href="/login">Back</a>
+  </nav>
+  <main class="auth-wrapper">
+    <section class="auth-card" aria-labelledby="reset-title">
+      <h2 id="reset-title" class="auth-title">Choose a new password</h2>
+      <form class="auth-form" action="/reset" method="POST">
+        <input type="hidden" name="access_token" id="access_token">
+        <div class="auth-input-group password-toggle">
+          <label class="auth-label" for="password">New password</label>
+          <div class="auth-input-wrap">
+            <input class="auth-input with-toggle" type="password" id="password" name="password" placeholder="••••••••" required>
+            <button type="button" id="togglePassword" class="password-toggle-btn" aria-label="Show password">
+              <svg id="eyeOpen" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg id="eyeClosed" style="display:none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.8 21.8 0 0 1 5.06-6.94"></path><path d="M1 1l22 22"></path><path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88"></path></svg>
+            </button>
+          </div>
+        </div>
+        <button class="auth-button" type="submit">Update password</button>
+      </form>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function() {
+      const frag = new URLSearchParams(window.location.hash.replace(/^#/,''));
+      const accessToken = frag.get('access_token');
+      const refreshToken = frag.get('refresh_token');
+      const accessField = document.getElementById('access_token');
+      if (accessToken) accessField.value = accessToken;
+
+      const btn = document.getElementById('togglePassword');
+      const input = document.getElementById('password');
+      const eyeOpen = document.getElementById('eyeOpen');
+      const eyeClosed = document.getElementById('eyeClosed');
+      if (btn && input) {
+        btn.addEventListener('click', () => {
+          const isPwd = input.type === 'password';
+          input.type = isPwd ? 'text' : 'password';
+          if (eyeOpen && eyeClosed) {
+            eyeOpen.style.display = isPwd ? 'none' : 'block';
+            eyeClosed.style.display = isPwd ? 'block' : 'none';
+          }
+        });
+      }
+
+      // Client-side session + update to avoid "Auth session missing!"
+      const form = document.querySelector('form[action="/reset"]');
+      if (form && window.supabase) {
+        const supabase = window.supabase.createClient('<%= supabaseUrl %>', '<%= supabaseAnon %>');
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            if (!accessToken || !refreshToken) throw new Error('Missing tokens in URL');
+            const { error: setErr } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+            if (setErr) throw setErr;
+            const password = input.value.trim();
+            if (!password) throw new Error('Password required');
+            const { error: updErr } = await supabase.auth.updateUser({ password });
+            if (updErr) throw updErr;
+            window.location.href = '/login';
+          } catch (err) {
+            alert(err.message || String(err));
+          }
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
+

@@ -23,12 +23,13 @@
     
     <nav class="glass-nav" role="navigation">
         <h1>Be Real</h1>
+        <a href="/logout">Logout</a>
     </nav>
     
     <div class="greeting-screen" id="greeting-screen">
-        <h1>Ugh... It's you</h1>
+        <h1>Ugh... It's you, <%= user.user_metadata && user.user_metadata.username ? user.user_metadata.username : user.email %></h1>
         <p>
-            Quote of the day: <br>
+           <br>
             <% if (data && data.quote) { %>
                 "<%= data.quote %>" — <%= data.author %>
             <% } else { %>
@@ -38,6 +39,8 @@
     </div>
     
     <main role="main">
+        
+
         <div id="chat-box" class="chat-container" aria-live="polite" aria-label="Chat messages"></div>
         
         <form id="chat-form" class="chat-form">

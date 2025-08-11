@@ -7,19 +7,23 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
   position: relative;
 }
 
+/* Push main content below fixed nav on chat pages */
+body:not(.auth-page) {
+  padding-top: 90px;
+}
+
 /* ===== BACKGROUND & ANIMATIONS ===== */
-body {
+.auth-page {
   height: 100%;
   font-family: 'Inter', sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
-  padding-top: 100px;
+  justify-content: flex-start;
+  padding-top: 0; /* override global padding for auth pages */
 }
 
 body::before {
@@ -94,8 +98,11 @@ body::before {
   color: white;
   text-align: center;
   width: 90%;
-  margin-bottom: 80px;
+  margin: 0 auto 80px;
 }
+
+/* Ensure chat container centers */
+.chat-container { margin-left: auto; margin-right: auto; }
 
 .greeting-screen h1 {
   font-family: 'Lora', serif;
@@ -111,13 +118,13 @@ body::before {
 
 /* ===== CHAT FORM ===== */
 .chat-form {
-  width: 90%;
+  width: calc(100% - 32px);
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   margin: 0 auto;
-  max-width: 60%;
+  max-width: 980px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -216,7 +223,8 @@ body::before {
 
 /* ===== CHAT CONTAINER ===== */
 .chat-container {
-  width: 90vw;
+  width: calc(100% - 32px);
+  max-width: 980px;
   max-height: calc(100vh - 240px);
   margin: 0 auto 220px;
   overflow-y: auto;
@@ -418,3 +426,118 @@ body::before {
   outline: 3px solid rgba(128, 0, 128, 0.6);
   outline-offset: 2px;
 }
+
+/* (reverted page scroll changes to original visual style) */
+
+/* ===== AUTH PAGES ===== */
+.auth-wrapper {
+  width: 100%;
+  min-height: calc(100vh - 80px); /* 80px ~ nav height */
+  display: grid;
+  place-items: center;
+  padding: 0 20px 20px;
+  position: relative;
+  top: 80px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(20, 20, 20, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  padding: 28px;
+  color: #fff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+.auth-title {
+  font-family: 'Lora', serif;
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.auth-subtitle {
+  color: #cfcfcf;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-input-group { display: grid; gap: 6px; }
+.auth-label { font-size: 14px; color: #e9e9e9; }
+.auth-input-wrap {
+  position: relative;
+}
+.auth-input {
+  background: rgba(45, 45, 45, 0.8);
+  color: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  outline: none;
+  transition: box-shadow .25s, border-color .25s;
+}
+.auth-input.with-toggle { padding-right: 42px; }
+.auth-input.with-toggle { padding-right: 46px; }
+.password-toggle {
+  position: relative;
+}
+.auth-input-group.password-toggle { position: relative; }
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  font-size: 0;
+  height: 32px;
+  width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.password-toggle-btn svg { width: 20px; height: 20px; display: block; opacity: .9; }
+.password-toggle-btn:hover svg { opacity: 1; }
+
+/* Forgot password notice */
+.auth-note { margin-top: 10px; font-size: 13px; text-align: center; }
+.auth-note a { color: #ffd700; text-decoration: none; }
+.auth-note a:hover { text-decoration: underline; }
+.auth-input::placeholder { color: #a0a0a0; }
+.auth-input:focus {
+  border-color: rgba(128, 0, 128, 0.8);
+  box-shadow: 0 0 0 3px rgba(128, 0, 128, 0.25);
+}
+
+.auth-button {
+  margin-top: 8px;
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #800080 0%, #9932CC 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(128, 0, 128, 0.35);
+  transition: transform .15s ease, box-shadow .25s ease, filter .25s ease;
+}
+.auth-button:hover { filter: brightness(1.07); box-shadow: 0 14px 30px rgba(128,0,128,.45); }
+.auth-button:active { transform: translateY(1px); }
+.auth-button:focus { outline: 3px solid rgba(128,0,128,.4); outline-offset: 2px; }
+
+.auth-meta { margin-top: 14px; font-size: 14px; color: #dcdcdc; text-align: center; }
+.auth-link { color: #ffd700; text-decoration: none; }
+.auth-link:hover { text-decoration: underline; }

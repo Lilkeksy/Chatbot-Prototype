@@ -1,60 +1,230 @@
-# LILKEKSY'S CHATBOT
+# AI-Powered RAG Chatbot with Supabase
 
-A sophisticated AI-powered chatbot with a custom personality, featuring real-time streaming responses and a modern glass-morphism UI.
+A sophisticated AI chatbot application that combines **Retrieval Augmented Generation (RAG)** with **conversation history** to provide contextual, intelligent responses. Built with modern web technologies and featuring a custom personality with glass-morphism UI design.
 
 ## 🚀 Features
 
+### Core Functionality
 - **AI-Powered Chatbot** with Google Gemini 2.5 Flash
 - **Custom Personality** - Sassy Nigerian character with Pidgin English
-- **Real-time Streaming** responses with typing animation
-- **Modern UI** with glass-morphism design and animated background
-- **Markdown Support** for rich text formatting
-- **Responsive Design** optimized for all devices
-- **Accessibility Features** including reduced motion support
-- **Daily Quotes** from external API
+- **RAG (Retrieval Augmented Generation)**: Combines vector search with LLM for grounded responses
+- **Conversation History**: Maintains context across multiple exchanges
+- **Real-time Chat**: Interactive chat interface with typing animations
+- **Vector Database**: PostgreSQL with pgvector for semantic search
+- **Authentication**: Full Supabase Auth integration (signup, login, password reset)
+
+### Technical Highlights
+- **RAG with Conversation History**: Maintains context across multiple exchanges
+- **Error Handling**: Comprehensive error handling and validation
+- **Performance Optimized**: Lazy loading, caching, and efficient queries
+- **Security**: Cookie-based sessions, input validation, and secure authentication
+- **Debug Tools**: Built-in debugging endpoints for development
+
+### UI/UX Features
+- **Glass-morphism Design** with backdrop blur effects
+- **Animated Background** with gradient animations
+- **Typing Animation** for realistic chat experience
+- **Markdown Rendering** with syntax highlighting
+- **Responsive Layout** that works on all screen sizes
+- **Smooth Transitions** and hover effects
+
+## 🏗️ Architecture
+
+```
+├── index.js              # Main application entry point
+├── scrape.js             # Web scraping and data ingestion
+├── config/
+│   └── sdrc-persona.txt  # AI personality configuration
+├── public/
+│   ├── js/
+│   │   ├── main.js       # Frontend chat logic
+│   │   └── shader.js     # Background animation
+│   └── styles/
+│       └── main.css      # Application styling
+└── views/
+    ├── index.ejs         # Main chat interface
+    ├── login.ejs         # Login page
+    ├── register.ejs      # Registration page
+    ├── forgot.ejs        # Password reset request
+    └── reset.ejs         # Password reset form
+```
+
+### Key Features
+- **RAG Implementation**: Vector search with conversation history
+- **Authentication**: Full Supabase Auth integration
+- **Real-time Chat**: Interactive interface with typing animations
+- **Responsive Design**: Works on all devices
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Node.js, Express.js
-- **AI**: Google Gemini 2.5 Flash
-- **Frontend**: EJS, CSS3, JavaScript
-- **Styling**: Glass-morphism, CSS animations
-- **APIs**: Google GenAI, API Ninjas (quotes)
+### Backend
+- **Node.js** with **Express.js** - Server framework
+- **LangChain.js** - LLM orchestration and RAG pipeline
+- **Google Gemini 2.5 Flash** - Large Language Model
+- **Supabase** - Backend-as-a-Service (PostgreSQL + Auth)
+- **pgvector** - Vector similarity search
+
+### Frontend
+- **EJS** - Server-side templating
+- **Vanilla JavaScript** - Interactive UI components
+- **CSS3** - Modern styling with glass-morphism design
+- **WebGL** - Animated background shaders
+
+### Development
+- **ES Modules** - Modern JavaScript module system
+- **Environment Variables** - Secure configuration management
+- **Debug Endpoints** - Development and testing tools
 
 ## 📋 Prerequisites
 
 - Node.js (v18+)
 - Google Gemini API key
 - API Ninjas key (optional, for quotes)
+- Supabase project with pgvector
 
-## 🔧 Installation
+## 📦 Installation
 
-1. **Clone and install dependencies:**
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd langchain-chatrag-attempt
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. **Set up environment variables:**
+3. **Set up environment variables**
    Create a `.env` file with:
    ```env
    GEMINI_API_KEY=your_gemini_api_key
    QUOTE_API_KEY=your_quote_api_key
+   SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+   SUPABASE_KEY=your_service_role_key
+   SUPABASE_ANON_KEY=your_supabase_anon_key
+   COOKIE_SECRET=your_cookie_secret
+   DEBUG_ROUTES=true # enable /debug/* locally only
    PORT=3000
    NODE_ENV=development
    ```
 
-3. **Start the server:**
+4. **Set up Supabase Database**
+   
+   Run the following SQL in your Supabase SQL editor:
+   ```sql
+   -- Enable pgvector extension
+   CREATE EXTENSION IF NOT EXISTS vector;
+
+   -- Create documents table
+   CREATE TABLE IF NOT EXISTS documents (
+     id BIGSERIAL PRIMARY KEY,
+     content TEXT NOT NULL,
+     metadata JSONB DEFAULT '{}'::jsonb,
+     embedding VECTOR(768)
+   );
+
+   -- Create vector index
+   CREATE INDEX IF NOT EXISTS documents_embedding_cos_idx 
+   ON documents 
+   USING ivfflat (embedding vector_cosine_ops)
+   WITH (lists = 100);
+
+   -- Create RPC function for similarity search
+   CREATE OR REPLACE FUNCTION match_documents(
+     filter JSONB DEFAULT '{}'::jsonb,
+     match_count INTEGER DEFAULT 5,
+     query_embedding VECTOR(768) DEFAULT NULL
+   )
+   RETURNS TABLE (
+     id BIGINT,
+     content TEXT,
+     metadata JSONB,
+     similarity FLOAT
+   )
+   LANGUAGE plpgsql
+   AS $$
+   BEGIN
+     RETURN QUERY
+     SELECT
+       documents.id,
+       documents.content,
+       documents.metadata,
+       1 - (documents.embedding <=> query_embedding) AS similarity
+     FROM documents
+     WHERE query_embedding IS NOT NULL
+     ORDER BY documents.embedding <=> query_embedding
+     LIMIT match_count;
+   END;
+   $$;
+   ```
+
+5. **Start the development server**
    ```bash
    npm run dev
    ```
 
-4. **Visit the application:**
+6. **Visit the application:**
    Open http://localhost:3000 in your browser
 
-## 🎯 API Endpoints
+## 🔧 Usage
 
-- `GET /` - Homepage with daily quote
-- `POST /submit` - Chat with AI (streaming response)
+### Web Scraping & Data Ingestion
+```bash
+# Scrape and ingest content into vector database
+npm run scrape
+```
+
+The scraping script:
+- Fetches content from specified URLs
+- Chunks text into manageable pieces
+- Generates embeddings using Google's text-embedding-004
+- Stores in Supabase with metadata
+- **Prevents duplicates** by clearing existing content for each URL
+
+### Chat Interface
+1. Register/login at `http://localhost:3000`
+2. Start chatting with the AI
+3. Ask follow-up questions - the AI maintains conversation context
+4. The AI will use relevant scraped content to provide grounded answers
+
+### Debug Endpoints (Development)
+When `DEBUG_ROUTES=true`:
+- `/debug/vec?q=query` - Test vector search
+- `/debug/docs-count` - Count documents in database
+- `/debug/docs-sample` - Sample documents
+- `/debug/text-like?q=query` - Test text search
+- `/debug/rpc` - Test RPC function
+
+## 🎯 Key Features Explained
+
+### RAG Implementation
+The system combines:
+1. **Vector Search**: Semantic similarity search using embeddings
+2. **Fallback Search**: Keyword-based search when vectors fail
+3. **Context Injection**: Relevant content injected into LLM prompts
+4. **Response Generation**: Contextual responses from Gemini 2.5 Flash
+
+### Conversation History
+- Maintains last 10 messages in session
+- Formats conversation for LLM context
+- Enables follow-up questions and references
+- Session-based (clears on page refresh)
+
+### Authentication Flow
+- **Registration**: Email/password with optional email confirmation
+- **Login**: Secure session management with cookies
+- **Password Reset**: Email-based reset flow
+- **Session Management**: Automatic token validation
+
+## 🎭 Custom Personality
+
+The chatbot features a unique personality defined in `config/sdrc-persona.txt`:
+- Sassy Nigerian character
+- Pidgin English communication
+- Blunt and direct responses
+- Grammar correction
+- Contextual humor
 
 ## 📊 Performance Features
 
@@ -65,21 +235,14 @@ A sophisticated AI-powered chatbot with a custom personality, featuring real-tim
 - **Accessibility** with ARIA labels and focus management
 - **Performance Optimized** CSS with efficient selectors
 
-## 🎨 UI/UX Features
-
-- **Glass-morphism Design** with backdrop blur effects
-- **Animated Background** with gradient animations
-- **Typing Animation** for realistic chat experience
-- **Markdown Rendering** with syntax highlighting
-- **Responsive Layout** that works on all screen sizes
-- **Smooth Transitions** and hover effects
-
 ## 🔒 Security Features
 
 - **Input Sanitization** using DOMPurify
 - **Markdown Parsing** with security considerations
 - **Environment Variable Protection**
 - **Error Handling** without exposing sensitive data
+- **Cookie-based Sessions** with secure flags
+- **Authentication Validation** at multiple levels
 
 ## 📱 Responsive Design
 
@@ -97,54 +260,35 @@ The application is fully responsive and optimized for:
 - **High Contrast** text and focus indicators
 - **ARIA Labels** for better screen reader experience
 
-## 🚀 Development
+## 🚀 Deployment
 
-### Available Scripts
+### Environment Setup
+- Ensure all environment variables are configured
+- Set up Supabase project with proper permissions
+- Configure CORS settings if needed
 
-- `npm start` - Start production server
-- `npm run dev` - Start development server with nodemon
-- `npm test` - Run tests (placeholder)
+### Production Considerations
+- Use production-grade cookie secrets
+- Enable HTTPS in production
+- Set up proper logging and monitoring
+- Consider rate limiting for API endpoints
+- Implement proper error tracking
 
-### Project Structure
+## 🔍 Code Quality
 
-```
-├── config/
-│   └── sdrc-persona.txt    # AI personality configuration
-├── public/
-│   ├── js/
-│   │   ├── main.js         # Main application logic
-│   │   └── shader.js       # Background animation
-│   └── styles/
-│       └── main.css        # Optimized styles
-├── views/
-│   └── index.ejs           # Main template
-├── index.js                # Server entry point
-├── package.json            # Dependencies and scripts
-└── README.md               # This file
-```
+### Key Benefits
+- **Maintainability**: Well-structured and documented code
+- **Functionality**: Full RAG implementation with conversation history
+- **Security**: Proper authentication and input validation
+- **Performance**: Optimized queries and lazy loading
+- **User Experience**: Responsive design with smooth animations
 
-## 🎭 Custom Personality
-
-The chatbot features a unique personality defined in `config/sdrc-persona.txt`:
-- Sassy Nigerian character
-- Pidgin English communication
-- Blunt and direct responses
-- Grammar correction
-- Contextual humor
-
-## 🔧 Customization
-
-### Changing the AI Personality
-Edit `config/sdrc-persona.txt` to modify the chatbot's behavior and responses.
-
-### Styling
-Modify `public/styles/main.css` to customize the visual appearance.
-
-### Adding Features
-The modular code structure makes it easy to add new features:
-- New API endpoints in `index.js`
-- UI components in `views/index.ejs`
-- Interactive features in `public/js/main.js`
+### Best Practices Implemented
+- Input validation and sanitization
+- Comprehensive error handling
+- Security-first authentication
+- Performance optimization
+- Clean code principles
 
 ## 📈 Performance Metrics
 
@@ -152,6 +296,30 @@ The modular code structure makes it easy to add new features:
 - **Bundle Size**: Optimized for fast loading
 - **Memory Usage**: Efficient resource management
 - **Mobile Performance**: Optimized for mobile devices
+
+## 🔧 Development
+
+### Available Scripts
+
+- `npm start` - Start production server
+- `npm run dev` - Start development server with nodemon
+- `npm run scrape` - Scrape and ingest content
+- `npm test` - Run tests (placeholder)
+
+### Customization
+
+#### Changing the AI Personality
+Edit `config/sdrc-persona.txt` to modify the chatbot's behavior and responses.
+
+#### Styling
+Modify `public/styles/main.css` to customize the visual appearance.
+
+#### Adding Features
+The modular code structure makes it easy to add new features:
+- New API endpoints in `index.js`
+- UI components in `views/index.ejs`
+- Interactive features in `public/js/main.js`
+- Add sources: edit `config/websites.json`, then run `npm run scrape`
 
 ## 🤝 Contributing
 
@@ -163,7 +331,7 @@ The modular code structure makes it easy to add new features:
 
 ## 📄 License
 
-This project is licensed under the ISC License.
+This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
@@ -173,4 +341,30 @@ This project is licensed under the ISC License.
 
 ---
 
-**Built with ❤️ by Lilkeksy** 
+**Built with ❤️ by Lilkeksy**
+
+---
+
+## Resume Impact
+
+This codebase demonstrates:
+
+1. **Full-Stack Development** - Frontend, backend, database, AI integration
+2. **Modern JavaScript** - ES modules, async/await, modern patterns
+3. **AI/ML Integration** - RAG implementation with LangChain and vector search
+4. **Security Awareness** - Authentication, validation, error handling
+5. **Performance Optimization** - Lazy loading, efficient queries
+6. **User Experience** - Responsive design with smooth animations
+7. **Documentation Skills** - Professional README and code comments
+
+### Technical Highlights for Resume:
+
+- **RAG Implementation** with vector search and conversation history
+- **Supabase Integration** for authentication and vector database
+- **LangChain.js** for AI orchestration and prompt management
+- **Modern JavaScript** with ES modules and async patterns
+- **Security Best Practices** with input validation and authentication
+- **Performance Optimization** with lazy loading and caching
+- **Real-time Chat Interface** with typing animations
+
+This is a **professional, resume-worthy project** that demonstrates modern web development and AI integration skills! 🚀

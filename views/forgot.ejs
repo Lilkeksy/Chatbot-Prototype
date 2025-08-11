@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#800080">
+  <title>Forgot Password • LILKEKSY'S CHATBOT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body class="auth-page">
+  <div class="loading-indicator"></div>
+  <canvas id="myCanvas" aria-hidden="true"></canvas>
+
+  <nav class="glass-nav" role="navigation">
+    <h1>Be Real</h1>
+    <a href="/login">Back</a>
+  </nav>
+
+  <main class="auth-wrapper" role="main">
+    <section class="auth-card" aria-labelledby="forgot-title">
+      <h2 id="forgot-title" class="auth-title">Reset password</h2>
+      <p class="auth-subtitle">Enter your email to receive a reset link</p>
+
+      <% if (typeof sent !== 'undefined' && sent) { %>
+        <p class="auth-meta">If an account exists for that email, a reset link has been sent.</p>
+      <% } %>
+
+      <form class="auth-form" action="/forgot" method="POST">
+        <div class="auth-input-group">
+          <label class="auth-label" for="email">Email</label>
+          <input class="auth-input" type="email" id="email" name="email" placeholder="you@example.com" required>
+        </div>
+        <button class="auth-button" type="submit" aria-label="Send reset link">Send reset link</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/shader.js"></script>
+</body>
+</html>
+
