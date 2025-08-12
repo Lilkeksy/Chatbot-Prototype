@@ -59,26 +59,19 @@ body:not(.auth-page) {
     -webkit-overflow-scrolling: touch;
   }
   
-  /* iPhone keyboard fixes */
+  /* Mobile adjustments */
   @media screen and (max-width: 768px) {
-    body {
-      background: linear-gradient(135deg, #1a0a1a 0%, #000000 50%, #1a0a1a 100%);
-      /* Better viewport handling for iPhone */
-      height: 100vh;
-      height: -webkit-fill-available;
-    }
-    
     .chat-container {
-      max-height: calc(100vh - 300px - env(safe-area-inset-top));
-      margin-bottom: 200px;
+      max-height: calc(100vh - 280px);
+      margin-bottom: 120px;
     }
     
     .greeting-screen {
-      margin-bottom: 40px;
+      margin-bottom: 20px;
     }
     
     .quote-container {
-      margin-bottom: 40px;
+      margin-bottom: 20px;
     }
   }
   
@@ -604,9 +597,6 @@ body::before {
   .chat-form {
     padding: 1rem;
     width: calc(100% - 16px);
-    /* Better iPhone positioning */
-    position: fixed;
-    bottom: 0;
   }
 }
 
