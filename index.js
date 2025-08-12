@@ -66,6 +66,44 @@ const DEFAULT_QUOTE = {
   category: "default"
 };
 
+// Dynamic greeting system
+const SASSY_GREETINGS = [
+  "Well well well...",
+  "Back so soon?",
+  "You again, huh?",
+  "Oh great, you're here.",
+  "Oh, it's you. Joy.",
+  "Look who's back...",
+  "Well, if it isn't...",
+  "Oh, you're back...",
+  "Look who showed up...",
+  "Back for round two?",
+  "Well, this is a surprise...",
+  "Oh look who's here...",
+  "Back for more punishment?",
+  "You're back again...",
+  "Back for another round?"
+];
+
+const SASSY_SUBTITLES = [
+  "What do you want this time?",
+  "Ready to waste more of my time?",
+  "What's your excuse today?",
+  "Let's get this over with...",
+  "What brilliant question do you have now?",
+  "Another day, another question...",
+  "What can I help you with this time?",
+  "Ready to test my patience?",
+  "What's on your mind today?",
+  "Let's see what you've got..."
+];
+
+function getRandomGreeting() {
+  const greeting = SASSY_GREETINGS[Math.floor(Math.random() * SASSY_GREETINGS.length)];
+  const subtitle = SASSY_SUBTITLES[Math.floor(Math.random() * SASSY_SUBTITLES.length)];
+  return { greeting, subtitle };
+}
+
 // Load persona prompt
 const PERSONA_PROMPT = fs.readFileSync(
   path.join(__dirname, "config", "sdrc-persona.txt"),
@@ -138,11 +176,23 @@ app.get("/", ensureAuthenticated, async (req, res) => {
   try {
     const quote = await fetchDailyQuote();
     const cookieUser = req.currentUser;
-    res.render("index", { data: quote, user: cookieUser });
+    const { greeting, subtitle } = getRandomGreeting();
+    res.render("index", { 
+      data: quote, 
+      user: cookieUser, 
+      greeting: greeting,
+      subtitle: subtitle
+    });
   } catch (error) {
     console.error("Homepage error:", error);
     const cookieUser = req.currentUser;
-    res.render("index", { data: DEFAULT_QUOTE, user: cookieUser });
+    const { greeting, subtitle } = getRandomGreeting();
+    res.render("index", { 
+      data: DEFAULT_QUOTE, 
+      user: cookieUser,
+      greeting: greeting,
+      subtitle: subtitle
+    });
   }
 });
 

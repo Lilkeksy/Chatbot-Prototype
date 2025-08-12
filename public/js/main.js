@@ -245,6 +245,8 @@ input.addEventListener("input", autoResizeTextarea);
 
 form.addEventListener("submit", handleSubmit);
 
+
+
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
   const toggleBtn = document.getElementById('toggle-bg');
@@ -260,6 +262,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if(input) {
     input.focus();
   }
+  
   // Trigger a layout to ensure the chat container can scroll
   setTimeout(() => {
     resizeChat();

@@ -8,11 +8,17 @@
 html, body {
   height: 100%;
   position: relative;
+  /* Prevent elastic scrolling on iOS */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Push main content below fixed nav on chat pages */
 body:not(.auth-page) {
   padding-top: 90px;
+  /* Ensure body fills viewport and prevents overscroll */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
 /* iPhone status bar fixes */
@@ -26,6 +32,59 @@ body:not(.auth-page) {
 @supports (-webkit-touch-callout: none) {
   body:not(.auth-page) {
     padding-top: calc(90px + env(safe-area-inset-top));
+    /* Prevent elastic scrolling and ensure proper viewport handling */
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
+  }
+  
+  /* Fix for iOS Safari viewport issues */
+  html {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+  
+  /* Additional iOS Safari fixes */
+  .glass-nav {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .chat-container {
+    max-height: calc(100vh - 200px - env(safe-area-inset-top));
+  }
+  
+  /* Prevent overscroll bounce effect */
+  body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* iPhone keyboard fixes */
+  @media screen and (max-width: 768px) {
+    body {
+      background: linear-gradient(135deg, #1a0a1a 0%, #000000 50%, #1a0a1a 100%);
+      /* Better viewport handling for iPhone */
+      height: 100vh;
+      height: -webkit-fill-available;
+    }
+    
+    .chat-container {
+      max-height: calc(100vh - 300px - env(safe-area-inset-top));
+      margin-bottom: 200px;
+    }
+    
+    .greeting-screen {
+      margin-bottom: 40px;
+    }
+    
+    .quote-container {
+      margin-bottom: 40px;
+    }
+  }
+  
+  /* Ensure status bar area matches theme */
+  body::before {
+    background: linear-gradient(135deg, #1a0a1a 0%, #000000 50%, #1a0a1a 100%);
   }
 }
 
@@ -47,8 +106,11 @@ body::before {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000000;
+  background: linear-gradient(135deg, #1a0a1a 0%, #000000 50%, #1a0a1a 100%);
   z-index: -2;
+  /* Ensure background covers any overscroll areas */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
 }
 
 /* ===== CANVAS BACKGROUND ===== */
@@ -442,26 +504,80 @@ body::before {
 /* ===== GREETING SCREEN ===== */
 .greeting-screen {
   padding-top: 20px;
-  font-family: "Lora", serif;
+  font-family: 'Inter', sans-serif;
   color: white;
   text-align: center;
   width: 90%;
   margin: 0 auto 80px;
+  /* Prevent content from causing page overscroll */
+  position: relative;
+  z-index: 1;
 }
 
 /* Ensure chat container centers */
 .chat-container { margin-left: auto; margin-right: auto; }
 
 .greeting-screen h1 {
-  font-family: 'Lora', serif;
-  font-size: clamp(50px, 10vw, 100px);
-  margin-bottom: 30px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1.1;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-.greeting-screen p {
-  font-size: clamp(16px, 3vw, 22px);
-  margin-top: 30px;
-  line-height: 1.6;
+.greeting-subtitle {
+  font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+  color: #b0b0b0;
+  margin-bottom: 50px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.quote-container {
+  max-width: 700px;
+  margin: 0 auto 80px;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.quote-container blockquote {
+  font-family: 'Lora', serif;
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  font-style: italic;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+  position: relative;
+}
+
+.quote-container blockquote::before {
+  content: '"';
+  font-size: 2.5em;
+  color: rgba(128, 0, 128, 0.6);
+  position: absolute;
+  top: -8px;
+  left: -18px;
+  font-family: 'Lora', serif;
+}
+
+.quote-container cite {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  color: #888;
+  font-style: normal;
+  display: block;
+  text-align: right;
 }
 
 /* ===== CHAT FORM ===== */
@@ -480,6 +596,18 @@ body::before {
   padding: 1.5rem;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+/* Mobile-specific chat form adjustments */
+@media screen and (max-width: 768px) {
+  .chat-form {
+    padding: 1rem;
+    width: calc(100% - 16px);
+    /* Better iPhone positioning */
+    position: fixed;
+    bottom: 0;
+  }
 }
 
 .input-container {
@@ -573,8 +701,8 @@ body::before {
 .chat-container {
   width: calc(100% - 32px);
   max-width: 980px;
-  max-height: calc(100vh - 240px);
-  margin: 0 auto 220px;
+  max-height: calc(100vh - 300px);
+  margin: 0 auto 180px;
   overflow-y: auto;
   overflow-x: hidden;
   background: rgba(10, 10, 10, 0.5);
@@ -586,6 +714,86 @@ body::before {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  /* iOS Safari specific fixes */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent container from causing page overscroll */
+  position: relative;
+  z-index: 1;
+}
+
+/* Large screen adjustments */
+@media screen and (min-width: 1200px) {
+  .greeting-screen {
+    margin: 0 auto 100px;
+  }
+  
+  .greeting-subtitle {
+    margin-bottom: 60px;
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+  }
+  
+  .quote-container {
+    margin: 0 auto 100px;
+    max-width: 800px;
+    padding: 40px;
+  }
+  
+  .chat-container {
+    max-height: calc(100vh - 350px);
+    margin: 0 auto 250px;
+  }
+}
+
+/* Tablet adjustments */
+@media screen and (max-width: 1199px) and (min-width: 769px) {
+  .greeting-screen {
+    margin: 0 auto 60px;
+  }
+  
+  .greeting-subtitle {
+    margin-bottom: 40px;
+  }
+  
+  .quote-container {
+    margin: 0 auto 60px;
+    max-width: 600px;
+  }
+  
+  .chat-container {
+    max-height: calc(100vh - 320px);
+    margin: 0 auto 200px;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media screen and (max-width: 768px) {
+  .chat-container {
+    max-height: calc(100vh - 360px);
+    margin: 0 auto 220px;
+  }
+  
+  .quote-container {
+    margin: 0 auto 40px;
+    max-width: 90%;
+    padding: 16px;
+  }
+  
+  .greeting-screen {
+    margin: 0 auto 40px;
+  }
+  
+  .greeting-subtitle {
+    margin-bottom: 30px;
+  }
+  
+  .greeting-screen h1 {
+    font-size: clamp(2rem, 7vw, 3.5rem);
+    margin-bottom: 16px;
+  }
+  
+  .greeting-subtitle {
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+  }
 }
 
 /* ===== SCROLLBAR STYLING ===== */
@@ -652,12 +860,14 @@ body::before {
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   color: #fff;
   border-bottom-left-radius: 5px;
-  /* Ensure proper emoji rendering on all devices */
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  /* Enhanced emoji rendering for all devices */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', 'EmojiSymbols';
   font-feature-settings: "liga" 1, "kern" 1;
   -webkit-font-feature-settings: "liga" 1, "kern" 1;
   text-rendering: optimizeLegibility;
   -webkit-text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .error-message {
@@ -693,14 +903,23 @@ body::before {
   .bot-message .message-content {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   }
   
   .bot-message .message-content span[data-emoji],
   .bot-message .message-content emoji,
   .bot-message .message-content .emoji {
-    font-family: 'Apple Color Emoji', sans-serif;
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
     transform: translateZ(0);
     -webkit-transform: translateZ(0);
+    font-size: 1.2em;
+    line-height: 1;
+    vertical-align: baseline;
+  }
+  
+  /* Force emoji rendering on iOS */
+  .bot-message .message-content * {
+    font-family: inherit;
   }
 }
 
